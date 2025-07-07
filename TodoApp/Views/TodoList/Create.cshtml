@@ -1,0 +1,90 @@
+﻿@model TodoApp.Models.MainTask
+
+@{
+    ViewData["Title"] = "Create";
+    ViewData["UserId"] = 1; // debug: ログイン機能作るまで、便宜上ユーザーIDを1に設定.
+    ViewData["Progress"] = 0; // default
+}
+
+<h1>Create</h1>
+
+<h4>MainTask</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <input asp-for="UserId" type="hidden" class="form-control" value="@ViewData["UserId"]" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Title" class="control-label"></label>
+                <span asp-validation-for="Title" class="text-danger"></span>
+                <input asp-for="Title" class="form-control" />
+            </div>
+            <div class="form-group">
+                <input asp-for="Progress" type="hidden" class="form-control" value="@ViewData["Progress"]" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Priority" class="control-label"></label>
+                <span asp-validation-for="Priority" class="text-danger"></span>
+                <input asp-for="Priority" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="StartTime" class="control-label"></label>
+                <span asp-validation-for="StartTime" class="text-danger"></span>
+                <input asp-for="StartTime" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="EndTime" class="control-label"></label>
+                <span asp-validation-for="EndTime" class="text-danger"></span>
+                <input asp-for="EndTime" class="form-control" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Description" class="control-label"></label>
+                <span asp-validation-for="Description" class="text-danger"></span>
+                <textarea asp-for="Description" class="form-control" placeholder=""></textarea>
+            </div>
+            <input type="hidden" class="form-check-input" asp-for="IsCompleted" value="false" />
+            <input type="hidden" class="form-check-input" asp-for="IsDeleted" value="false" />
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div style="position:relative;">
+        <div class="alert alert-danger" style="float:left;">
+            登録できませんでした。入力内容をご確認ください。
+        </div>
+    </div>
+    @* debug: バリデーションチェックのエラー文確認. *@
+    @* <div class="alert alert-danger">
+        <strong>エラー:</strong>
+        <ul>
+            @foreach (var modelError in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@modelError.ErrorMessage</li>
+            }
+        </ul>
+    </div> *@
+}
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+
+@* debug: バリデーションチェックのエラー文の位置を変えてみる. *@
+<style>
+    .text-danger{
+        float: right;
+    }
+</style>
