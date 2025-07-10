@@ -12,7 +12,7 @@ namespace TodoApp.Models
 
         [Required(ErrorMessage = "タスク名は必須項目です。")]
         [Display(Name = "タスク名")]
-        [StringLength(255, MinimumLength = 1, ErrorMessage = "タスク名は1～255文字以内で入力してください。")]
+        [StringLength(100, MinimumLength = 1, ErrorMessage = "タスク名は1～255文字以内で入力してください。")]
         public string Title { get; set; }
 
         [Required]
