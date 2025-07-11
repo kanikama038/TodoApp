@@ -14,6 +14,36 @@ namespace TodoApp.Data
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // ReviewerReviewee テーブルの制約：
+            // - ReviewerId と RevieweeId はどちらも一意.
+            // - 自己レビューは禁止（ReviewerId ≠ RevieweeId）.
+            // - 完全な1対1対応関係を実現.
+            // - 削除時の制約：Reviewer または Reviewee が削除されたとき、関連する ReviewerReviewee レコードも削除される(Cascade). ただし、相手の Reviewer または Revieweeの Role情報は手動で更新する必要がある.
+            modelBuilder.Entity<ReviewerReviewee>(entity =>
+            {
+                entity.HasKey(rr => new { rr.ReviewerId, rr.RevieweeId });
+
+                entity.HasOne(rr => rr.Reviewer)
+                    .WithOne(u => u.AsReviewer)
+                    .HasForeignKey<ReviewerReviewee>(rr => rr.ReviewerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(rr => rr.Reviewee)
+                    .WithOne(u => u.AsReviewee)
+                    .HasForeignKey<ReviewerReviewee>(rr => rr.RevieweeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(rr => rr.ReviewerId).IsUnique();
+                entity.HasIndex(rr => rr.RevieweeId).IsUnique();
+
+                entity.ToTable(t => t.HasCheckConstraint("CK_ReviewerNotEqualReviewee", "[ReviewerId] <> [RevieweeId]"));
+            });
+
+        }
+
+
         public DbSet<Log> Logs { get; set; } = default!;
         public DbSet<MainTask> MainTasks { get; set; } = default!;
         public DbSet<SubTask> SubTasks { get; set; } = default!;

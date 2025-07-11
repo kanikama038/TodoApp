@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TodoApp.Models;
 
 namespace TodoApp.Models
 {
@@ -70,6 +71,10 @@ namespace TodoApp.Models
         [Display(Name = "最終ログアウト日時")]
         [DataType(DataType.DateTime)]
         public DateTime? LoggedOutedAt { get; set; }
+
+
+        public ReviewerReviewee? AsReviewer { get; set; }　// ナビゲーションプロパティ: レビュワとしてレビューイの情報を辿れる(Viewに渡す際はInclude()する).
+        public ReviewerReviewee? AsReviewee { get; set; } // ナビゲーションプロパティ: レビューイとしてレビュワの情報を辿れる.
 
     }
 }

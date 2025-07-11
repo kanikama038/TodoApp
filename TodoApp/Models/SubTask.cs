@@ -37,9 +37,9 @@ namespace TodoApp.Models
             return result;
         }
 
-        [Display(Name = "備考")]
+        [Display(Name = "詳細")]
         [DataType(DataType.MultilineText)]
-        [StringLength(1000, ErrorMessage = "備考は1000文字以内で入力してください。")]
+        [StringLength(1000, ErrorMessage = "詳細は1000文字以内で入力してください。")]
         public string? Description { get; set; }
 
 

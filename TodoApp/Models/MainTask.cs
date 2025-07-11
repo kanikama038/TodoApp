@@ -76,7 +76,7 @@ namespace TodoApp.Models
         [Display(Name = "作成日時")]
         [DataType(DataType.DateTime)]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-        [Display(Name = "最終更新日時")]
+        [Display(Name = "更新日時")]
         [DataType(DataType.DateTime)]
         public DateTime? UpdatedAt { get; set; }
         [Display(Name = "完了日時")]
