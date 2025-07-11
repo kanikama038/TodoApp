@@ -18,7 +18,7 @@ namespace TodoApp.Models
         [Required]
         [Display(Name = "進捗度")]
         [Range(0, 100, ErrorMessage = "進捗度の値が不正です。")]
-        public int Progress { get; set; }
+        public int Progress { get; set; } // Rank計算用.進捗度を視覚的に表現するのもアリ.
 
         [Required(ErrorMessage = "緊急度は必須項目です。")]
         [Display(Name = "緊急度")]

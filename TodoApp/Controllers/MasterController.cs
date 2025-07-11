@@ -5,11 +5,11 @@ using TodoApp.Models;
 
 namespace TodoApp.Controllers
 {
-    public class AdminController : Controller
+    public class MasterController : Controller
     {
         private readonly TodoAppDbContext _context;
 
-        public AdminController(TodoAppDbContext context)
+        public MasterController(TodoAppDbContext context)
         {
             _context = context;
         }
