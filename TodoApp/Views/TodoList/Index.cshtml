@@ -18,6 +18,9 @@ https://demo.mescius.jp/c1/aspnet/MvcExplorer/Popup
     <thead>
         <tr>
             <th>
+                @Html.DisplayNameFor(model => model.IsCompleted)
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.UserId)
             </th>
             <th>
@@ -27,13 +30,16 @@ https://demo.mescius.jp/c1/aspnet/MvcExplorer/Popup
                 @Html.DisplayNameFor(model => model.Progress)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Priority)
+                @Html.DisplayNameFor(model => model.Urgency)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.StartTime)
+                @Html.DisplayNameFor(model => model.Importance)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.EndTime)
+                @Html.DisplayNameFor(model => model.StartedAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EndedAt)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Description)
@@ -45,6 +51,11 @@ https://demo.mescius.jp/c1/aspnet/MvcExplorer/Popup
 @foreach (var item in Model) {
         <tr>
             <td>
+                <input type="checkbox" @(item.IsCompleted ? "checked" : "")
+                        data-id="@item.Id"
+                        class="is-completed-checkbox" />
+            </td>
+            <td>
                 @Html.DisplayFor(modelItem => item.UserId)
             </td>
             <td>
@@ -54,13 +65,16 @@ https://demo.mescius.jp/c1/aspnet/MvcExplorer/Popup
                 @Html.DisplayFor(modelItem => item.Progress)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Priority)
+                @Html.DisplayFor(modelItem => item.Urgency)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.StartTime)
+                @Html.DisplayFor(modelItem => item.Importance)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.EndTime)
+                @Html.DisplayFor(modelItem => item.StartedAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EndedAt)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Description)
@@ -74,3 +88,28 @@ https://demo.mescius.jp/c1/aspnet/MvcExplorer/Popup
 }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.is-completed-checkbox').forEach(cb => {
+            cb.addEventListener('change', function () {
+                const taskId = this.dataset.id;
+                const isCompleted = this.checked;
+
+                fetch(`/TodoList/UpdateIsCompleted`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ id: taskId, isCompleted: isCompleted })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        alert("更新に失敗しました");
+                    }
+                });
+            });
+        });
+    </script>
+}
+

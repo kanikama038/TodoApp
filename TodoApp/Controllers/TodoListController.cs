@@ -154,5 +154,24 @@ namespace TodoApp.Controllers
         {
             return _context.MainTasks.Any(e => e.Id == id);
         }
+
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> UpdateIsCompleted([FromBody] UpdateIsCompletedDto dto)
+        {
+            var task = await _context.MainTasks.FindAsync(dto.Id);
+            if (task == null) return NotFound();
+
+            task.IsCompleted = dto.IsCompleted;
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+        public class UpdateIsCompletedDto
+        {
+            public int Id { get; set; }
+            public bool IsCompleted { get; set; }
+        }
     }
 }
