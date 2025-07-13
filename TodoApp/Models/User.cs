@@ -29,13 +29,13 @@ namespace TodoApp.Models
         [Required(ErrorMessage = "ユーザ名は必須項目です。")]
         [Display(Name = "ユーザ名")]
         [StringLength(100, MinimumLength = 1, ErrorMessage = "ユーザ名は1～100文字以内で入力してください。")]
-        public string Name { get; set; }
+        public string Name { get; set; } = "";
 
         [Required(ErrorMessage = "メールドレスは必須項目です。")]
         [Display(Name = "メールアドレス")]
         [EmailAddress(ErrorMessage = "無効なアドレスです。")]
         [StringLength(100, ErrorMessage = "メールアドレスは100文字以内で入力してください。")]
-        public string Email { get; set; }
+        public string Email { get; set; } = "";
 
         [Required(ErrorMessage = "パスワードは必須項目です。")]
         [Display(Name = "パスワード")]
@@ -44,7 +44,7 @@ namespace TodoApp.Models
         // 以下、Modelバリデーションチェック用.
         //[StringLength(100, ErrorMessage = "パスワードは100文字以内で入力してください。")]
         //[RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$", ErrorMessage = "パスワードは8文字以上で、少なくとも1つの英大文字、1つの英小文字、1つの数字を含めてください。")]
-        public string HashedPassword { get; set; } // SHA-256.
+        public string HashedPassword { get; set; } = ""; // SHA-256.
 
         [Required(ErrorMessage = "ロールは必須項目です。")]
         [Display(Name = "ロール")]

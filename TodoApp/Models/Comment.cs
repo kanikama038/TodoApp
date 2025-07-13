@@ -17,7 +17,7 @@ namespace TodoApp.Models
         [Display(Name = "本文")]
         [DataType(DataType.MultilineText)]
         [StringLength(1000, MinimumLength = 1, ErrorMessage = "本文は1～1000文字以内で入力してください。")]
-        public string Content { get; set; }
+        public string Content { get; set; } = "";
 
 
         [Required]

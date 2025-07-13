@@ -1,0 +1,34 @@
+﻿@*
+    レビューイからレビュワへのメールテンプレート.
+*@
+
+@model TodoApp.Models._EmailToReviewerModel
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8" />
+    <style>
+        body { font-family: sans-serif; }
+    </style>
+</head>
+<body>
+    <h2>@Model.UserName さん、通知が届ています。</h2>
+    <div style="background: #eee;">
+        <br />
+        <p>名前：　西園寺　世界</p>
+        <p>件名：</p>
+        <hr />
+        <hr />
+        <p>ごめん。↲</p>
+        @for (int i = 0; i < 20; i++)
+        {
+            <p>↲</p>
+        }
+        <p>さよなら</p>
+        <br />
+    </div>
+    <br />
+    <small>詳しくはこちら: <a href="@Model.Link">@Model.Link</a></small>
+</body>
+</html>

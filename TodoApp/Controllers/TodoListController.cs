@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MailKit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Data;
 using TodoApp.Models;
-
+using TodoApp.Services;
 
 namespace TodoApp.Controllers
 {
@@ -150,12 +151,13 @@ namespace TodoApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // 大タスクの存在判定(Editに使ってるっぽい).
         private bool MainTaskExists(int id)
         {
             return _context.MainTasks.Any(e => e.Id == id);
         }
 
-
+        // チェックボックスの状態を更新.
         [HttpPost]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> UpdateIsCompleted([FromBody] UpdateIsCompletedDto dto)
@@ -168,10 +170,12 @@ namespace TodoApp.Controllers
 
             return Ok();
         }
+        // チェックボックスの状態更新のjson受け取り用.
         public class UpdateIsCompletedDto
         {
             public int Id { get; set; }
             public bool IsCompleted { get; set; }
         }
+
     }
 }

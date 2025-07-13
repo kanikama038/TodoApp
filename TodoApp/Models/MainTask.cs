@@ -10,10 +10,10 @@ namespace TodoApp.Models
         [Required]
         public int UserId { get; set; } // FK: User.Id.
 
-        [Required(ErrorMessage = "タスク名は必須項目です。")]
+        [Required(ErrorMessage = "大タスク名は必須項目です。")]
         [Display(Name = "大タスク名")]
         [StringLength(100, MinimumLength = 1, ErrorMessage = "大タスク名は1～100文字以内で入力してください。")]
-        public string Title { get; set; }
+        public string Title { get; set; } = "";
 
         [Required]
         [Display(Name = "進捗度")]

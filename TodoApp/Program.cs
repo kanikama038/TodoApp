@@ -1,6 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TodoApp.Data;
+using TodoApp.Models;
+using TodoApp.Services;
+
 namespace TodoApp
 {
     public class Program
@@ -10,6 +13,18 @@ namespace TodoApp
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddDbContext<TodoAppDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("TodoAppDbContext") ?? throw new InvalidOperationException("Connection string 'TodoAppDbContext' not found.")));
+
+            // Configure the application to use appsettings.json and user secrets.
+            builder.Configuration
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddUserSecrets<Program>();
+
+            // EmailSettings binding.
+            builder.Services.Configure<_EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+
+            // Register the email service.
+            builder.Services.AddTransient<IEmailService, EmailService>();
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
