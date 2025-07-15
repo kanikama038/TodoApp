@@ -1,8 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Google.Apis.Auth.OAuth2;
+using Google.Apis.Gmail.v1;
+using Google.Apis.Util.Store;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using RazorLight;
 using TodoApp.Data;
 using TodoApp.Models;
 using TodoApp.Services;
+
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Auth.OAuth2.Requests;
 
 namespace TodoApp
 {
@@ -22,9 +31,12 @@ namespace TodoApp
 
             // EmailSettings binding.
             builder.Services.Configure<_EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+            builder.Services.Configure<_GmailApiSettings>(builder.Configuration.GetSection("GmailApiSettings"));
 
             // Register the email service.
             builder.Services.AddTransient<IEmailService, EmailService>();
+            builder.Services.AddSingleton<GmailAuthService>();
+            builder.Services.AddScoped<GmailEmailService>();
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
