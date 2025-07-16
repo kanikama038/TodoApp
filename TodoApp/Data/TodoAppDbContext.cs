@@ -49,6 +49,8 @@ namespace TodoApp.Data
         public DbSet<MainTask> MainTasks { get; set; } = default!;
         public DbSet<SubTask> SubTasks { get; set; } = default!;
         public DbSet<User> Users { get; set; } = default!;
+        public DbSet<ReviewerReviewee> ReviewerReviewees { get; set; } = null!;
+
 
     }
 }

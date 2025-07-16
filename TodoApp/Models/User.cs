@@ -6,10 +6,14 @@ namespace TodoApp.Models
     // ユーザのロールを定義.
     public enum UserRole
     {
-        Master,     // 管理者.
-        Reviewer,   // レビュワ.
-        Reviewee,   // レビューイ.
-        Other       // その他.
+        [Display(Name = "管理者")]
+        Master,
+        [Display(Name = "レビューイ")]
+        Reviewee,
+        [Display(Name = "レビュワ")]
+        Reviewer,
+        [Display(Name = "その他")]
+        Other
     }
     /*
      * ログイン機能にIdentityを使うなら、IdentityRoleを使うことも視野。
@@ -46,10 +50,10 @@ namespace TodoApp.Models
         //[RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$", ErrorMessage = "パスワードは8文字以上で、少なくとも1つの英大文字、1つの英小文字、1つの数字を含めてください。")]
         public string HashedPassword { get; set; } = ""; // SHA-256.
 
-        [Required(ErrorMessage = "ロールは必須項目です。")]
-        [Display(Name = "ロール")]
-        [EnumDataType(typeof(UserRole), ErrorMessage = "無効なロールです。")]
-        [Range(0, 3, ErrorMessage = "ロールの値が不正です。")]
+        [Required(ErrorMessage = "役割は必須項目です。")]
+        [Display(Name = "役割")]
+        [EnumDataType(typeof(UserRole), ErrorMessage = "無効な役割です。")]
+        [Range(0, 3, ErrorMessage = "役割の値が不正です。")]
         public UserRole Role { get; set; } // (0:Master, 1:Reviewer, 2:Reviewee, 3:other).
 
         [Display(Name = "備考")]
