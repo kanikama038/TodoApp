@@ -1,0 +1,32 @@
+﻿@{
+    ViewData["Title"] = "メール練習";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (TempData["ResultSendEmail"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["ResultSendEmail"]
+    </div>
+}
+
+<h2>SMTPでメール送信</h2>
+<form asp-action="Send" method="post">
+    <input type="email" name="toEmail" placeholder="宛先メールアドレス" required /><br />
+    <input type="text" name="subject" placeholder="件名" required /><br />
+    <input type="hidden" name="templateName" value="EmailToReviewer"><br />
+    <button type="submit">送信</button>
+</form>
+
+<br />
+<br />
+<br />
+
+<h2>GmailAPIでメール送信</h2>
+<form asp-action="SendGmail" method="post">
+    <input type="email" name="toEmail" placeholder="宛先メールアドレス" required /><br />
+    <input type="text" name="subject" placeholder="件名" required /><br />
+    <input type="hidden" name="templateName" value="EmailToReviewer"><br />
+    <button type="submit">送信</button>
+</form>

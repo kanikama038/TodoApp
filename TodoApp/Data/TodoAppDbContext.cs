@@ -14,10 +14,21 @@ namespace TodoApp.Data
         {
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Reviewee)
+                .WithOne(u => u.Reviewer)
+                .HasForeignKey<User>(u => u.RevieweeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
+
         public DbSet<Log> Logs { get; set; } = default!;
         public DbSet<MainTask> MainTasks { get; set; } = default!;
         public DbSet<SubTask> SubTasks { get; set; } = default!;
         public DbSet<User> Users { get; set; } = default!;
+        //public DbSet<ReviewerReviewee> ReviewerReviewees { get; set; } = null!;
+
 
     }
 }

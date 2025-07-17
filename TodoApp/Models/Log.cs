@@ -5,23 +5,19 @@ namespace TodoApp.Models
     public class Log
     {
         [Key]
-        public int Id { get; set; } // PK
+        public int Id { get; set; } // PK.
 
         [Required]
-        public int UserId { get; set; } // FK to User
+        public int UserId { get; set; } // FK: User.Id.
 
         [Required]
-        [Display(Name = "更新時刻")]
+        [Display(Name = "作成日時")]
         [DataType(DataType.DateTime)]
-        public DateTime Timestamp { get; set; } = DateTime.Now; // When the action was performed
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        [Display(Name = "操作")]
-        [DataType(DataType.Text)]
-        public string? Action { get; set; } // Action performed (e.g., "Create", "Update", "Delete")
-
-        [Display(Name = "詳細")]
+        [Display(Name = "内容")]
         [DataType(DataType.MultilineText)]
-        public string? Details { get; set; } // Additional details about the action
+        public string? Details { get; set; }
         
     }
 }

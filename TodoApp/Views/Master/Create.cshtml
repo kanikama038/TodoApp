@@ -1,0 +1,48 @@
+﻿@model UserCreateViewModel
+
+<form asp-action="Create" method="post" novalidate>
+    <div class="form-group">
+        <label asp-for="Name"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Password"></label>
+        <input asp-for="Password" type="password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Role"></label>
+        <select asp-for="Role" class="form-control" asp-items="Html.GetEnumSelectList<UserRole>()">
+            <option value="">-- 選択してください --</option>
+        </select>
+        <span asp-validation-for="Role" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="RevieweeEmail"></label>
+        <input asp-for="RevieweeEmail" class="form-control" type="text" />
+        <span asp-validation-for="RevieweeEmail" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ReviewerEmail"></label>
+        <input asp-for="ReviewerEmail" class="form-control" type="text" />
+        <span asp-validation-for="ReviewerEmail" class="text-danger"></span>
+    </div>
+
+    <a asp-action="Index" class="btn btn-secondary">キャンセル</a>
+    <button type="submit" class="btn btn-primary">登録</button>
+</form>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
