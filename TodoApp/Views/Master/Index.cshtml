@@ -58,8 +58,22 @@
                     }
                     @roleName
                 </td>
-                <td>@(user.AsReviewer?.Reviewee?.Name ?? "-")</td>
-                <td>@(user.AsReviewee?.Reviewer?.Name ?? "-")</td>
+                @if (user.Role == UserRole.Reviewer)
+                {
+                    <td>@user.Reviewee.Name</td>
+                   
+                }else
+                {
+                    <td>-</td>
+                }
+                @if (user.Role == UserRole.Reviewee)
+                {
+                    <td>@user.Reviewer.Name</td>
+                }
+                else
+                {
+                    <td>-</td>
+                }
                 <td>@user.CreatedAt.ToString("yyyy/MM/dd HH:mm")</td>
                 <td>@(user.UpdatedAt?.ToString("yyyy/MM/dd HH:mm") ?? "-")</td>
                 <td>

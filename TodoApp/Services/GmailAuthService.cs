@@ -45,5 +45,5 @@ namespace TodoApp.Services
     }
     // new FileDataStore() はデフォルトだと、C:\Users\<ユーザー名>\AppData\Roaming\gmail-token-store に保存される?.
     // カスタムしたいなら、new FileDataStore(Path.Combine(env.ContentRootPath, "wwwroot", "tokens"), true) で wwwroot/tokens に作られる。やるならgitignoreにtoken管理ファイルを書くべき.
-    // 毎回認証させたいならnew FileDataStore()をnullに置き換える.
+    // 毎回認証させたいならnew FileDataStore()をnullに置き換える(非推奨).
 }

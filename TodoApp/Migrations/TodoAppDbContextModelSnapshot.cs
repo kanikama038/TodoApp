@@ -99,28 +99,6 @@ namespace TodoApp.Migrations
                     b.ToTable("MainTasks");
                 });
 
-            modelBuilder.Entity("TodoApp.Models.ReviewerReviewee", b =>
-                {
-                    b.Property<int>("ReviewerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RevieweeId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ReviewerId", "RevieweeId");
-
-                    b.HasIndex("RevieweeId")
-                        .IsUnique();
-
-                    b.HasIndex("ReviewerId")
-                        .IsUnique();
-
-                    b.ToTable("ReviewerReviewees", t =>
-                        {
-                            t.HasCheckConstraint("CK_ReviewerNotEqualReviewee", "[ReviewerId] <> [RevieweeId]");
-                        });
-                });
-
             modelBuilder.Entity("TodoApp.Models.SubTask", b =>
                 {
                     b.Property<int>("Id")
@@ -197,6 +175,9 @@ namespace TodoApp.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("RevieweeId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Role")
                         .HasColumnType("int");
 
@@ -205,33 +186,26 @@ namespace TodoApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RevieweeId")
+                        .IsUnique()
+                        .HasFilter("[RevieweeId] IS NOT NULL");
+
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("TodoApp.Models.ReviewerReviewee", b =>
-                {
-                    b.HasOne("TodoApp.Models.User", "Reviewee")
-                        .WithOne("AsReviewee")
-                        .HasForeignKey("TodoApp.Models.ReviewerReviewee", "RevieweeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TodoApp.Models.User", "Reviewer")
-                        .WithOne("AsReviewer")
-                        .HasForeignKey("TodoApp.Models.ReviewerReviewee", "ReviewerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Reviewee");
-
-                    b.Navigation("Reviewer");
                 });
 
             modelBuilder.Entity("TodoApp.Models.User", b =>
                 {
-                    b.Navigation("AsReviewee");
+                    b.HasOne("TodoApp.Models.User", "Reviewee")
+                        .WithOne("Reviewer")
+                        .HasForeignKey("TodoApp.Models.User", "RevieweeId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.Navigation("AsReviewer");
+                    b.Navigation("Reviewee");
+                });
+
+            modelBuilder.Entity("TodoApp.Models.User", b =>
+                {
+                    b.Navigation("Reviewer");
                 });
 #pragma warning restore 612, 618
         }

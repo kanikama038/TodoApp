@@ -3,7 +3,7 @@ using TodoApp.Models;
 
 namespace TodoApp.Models
 {
-    // ユーザのロールを定義.
+    // ユーザのロールを定義(Identity.IdentityRoleを使うのもあり).
     public enum UserRole
     {
         [Display(Name = "管理者")]
@@ -15,15 +15,6 @@ namespace TodoApp.Models
         [Display(Name = "その他")]
         Other
     }
-    /*
-     * ログイン機能にIdentityを使うなら、IdentityRoleを使うことも視野。
-
-    using Microsoft.AspNetCore.Identity;
-    public class ApplicationRole : IdentityRole
-    {
-        // 任意のロール追加処理
-    }
-     */
 
     public class User
     {
@@ -45,7 +36,7 @@ namespace TodoApp.Models
         [Display(Name = "パスワード")]
         [DataType(DataType.Password)]
         [StringLength(70, ErrorMessage = "パスワードの値が不正です。")]
-        // 以下、Modelバリデーションチェック用.
+        // 以下、Modelバリデーションチェック用(不要なら消してヨシ！).
         //[StringLength(100, ErrorMessage = "パスワードは100文字以内で入力してください。")]
         //[RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$", ErrorMessage = "パスワードは8文字以上で、少なくとも1つの英大文字、1つの英小文字、1つの数字を含めてください。")]
         public string HashedPassword { get; set; } = ""; // SHA-256.
@@ -54,7 +45,7 @@ namespace TodoApp.Models
         [Display(Name = "役割")]
         [EnumDataType(typeof(UserRole), ErrorMessage = "無効な役割です。")]
         [Range(0, 3, ErrorMessage = "役割の値が不正です。")]
-        public UserRole Role { get; set; } // (0:Master, 1:Reviewer, 2:Reviewee, 3:other).
+        public UserRole Role { get; set; } // (0:Master, 1:Reviewer, 2:Reviewee, 3:Other).
 
         [Display(Name = "備考")]
         [DataType(DataType.MultilineText)]
@@ -77,8 +68,13 @@ namespace TodoApp.Models
         public DateTime? LoggedOutedAt { get; set; }
 
 
-        public ReviewerReviewee? AsReviewer { get; set; }　// ナビゲーションプロパティ: レビュワとしてレビューイの情報を辿れる(Viewに渡す際はInclude()する).
-        public ReviewerReviewee? AsReviewee { get; set; } // ナビゲーションプロパティ: レビューイとしてレビュワの情報を辿れる.
+        // 外部キー：このユーザーがレビューイの場合、レビュワーの参照
+        public int? RevieweeId { get; set; }
 
+        // ナビゲーション：レビュワー → レビューイ
+        public User? Reviewee { get; set; }
+
+        // ナビゲーション：レビューイ → レビュワー
+        public User? Reviewer { get; set; }
     }
 }

@@ -24,13 +24,13 @@ namespace TodoApp
                 options.UseSqlServer(builder.Configuration.GetConnectionString("TodoAppDbContext") ?? throw new InvalidOperationException("Connection string 'TodoAppDbContext' not found.")));
 
             // Configure the application to use appsettings.json and user secrets.
+            // ユーザシークレットを使用するなら、dotnet user-secrets set "hoge:huge" "公開しない情報" する必要がある.
             builder.Configuration
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddUserSecrets<Program>();
 
             // EmailSettings binding.
-            builder.Services.Configure<_EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
             builder.Services.Configure<_GmailApiSettings>(builder.Configuration.GetSection("GmailApiSettings"));
 
             // Register the email service.

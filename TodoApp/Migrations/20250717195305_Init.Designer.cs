@@ -12,8 +12,8 @@ using TodoApp.Data;
 namespace TodoApp.Migrations
 {
     [DbContext(typeof(TodoAppDbContext))]
-    [Migration("20250707164649_EditModels")]
-    partial class EditModels
+    [Migration("20250717195305_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,14 +33,11 @@ namespace TodoApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Action")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Details")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -68,34 +65,34 @@ namespace TodoApp.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1024)
-                        .HasColumnType("nvarchar(1024)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
-                    b.Property<DateTime>("EndTime")
+                    b.Property<DateTime>("EndedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("Importance")
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Priority")
+                    b.Property<int>("Progress")
                         .HasColumnType("int");
 
-                    b.Property<double>("Progress")
-                        .HasColumnType("float");
-
-                    b.Property<DateTime>("StartTime")
+                    b.Property<DateTime>("StartedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<int>("Urgency")
+                        .HasColumnType("int");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -123,22 +120,19 @@ namespace TodoApp.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1023)
-                        .HasColumnType("nvarchar(1023)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
+                    b.Property<DateTime>("EndedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("MainTaskId")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -160,23 +154,32 @@ namespace TodoApp.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(1023)
-                        .HasColumnType("nvarchar(1023)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("HashedPassword")
+                        .IsRequired()
+                        .HasMaxLength(70)
+                        .HasColumnType("nvarchar(70)");
+
+                    b.Property<DateTime?>("LoggedInedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LoggedOutedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                    b.Property<int?>("RevieweeId")
+                        .HasColumnType("int");
 
                     b.Property<int>("Role")
                         .HasColumnType("int");
@@ -186,7 +189,26 @@ namespace TodoApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RevieweeId")
+                        .IsUnique()
+                        .HasFilter("[RevieweeId] IS NOT NULL");
+
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("TodoApp.Models.User", b =>
+                {
+                    b.HasOne("TodoApp.Models.User", "Reviewee")
+                        .WithOne("Reviewer")
+                        .HasForeignKey("TodoApp.Models.User", "RevieweeId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Reviewee");
+                });
+
+            modelBuilder.Entity("TodoApp.Models.User", b =>
+                {
+                    b.Navigation("Reviewer");
                 });
 #pragma warning restore 612, 618
         }

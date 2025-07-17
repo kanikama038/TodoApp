@@ -19,21 +19,16 @@ namespace TodoApp.Controllers
         // 一覧表示
         public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
-            // 総件数の取得
             var totalUsers = await _context.Users.CountAsync();
 
-            // ページングしてユーザー取得（関連情報もInclude）
             var users = await _context.Users
-                .Include(u => u.AsReviewer)
-                    .ThenInclude(rr => rr.Reviewee)
-                .Include(u => u.AsReviewee)
-                    .ThenInclude(rr => rr.Reviewer)
+                .Include(u => u.Reviewee)
+                .Include(u => u.Reviewer)
                 .OrderBy(u => u.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
-            // ViewModelに詰めてビューへ
             var viewModel = new UserListViewModel
             {
                 Users = users,
@@ -44,17 +39,15 @@ namespace TodoApp.Controllers
             return View(viewModel);
         }
 
-
-        // ハッシュ化メソッド（SHA-256）
         private string HashPassword(string password)
         {
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            using var sha256 = SHA256.Create();
             var bytes = System.Text.Encoding.UTF8.GetBytes(password);
             var hash = sha256.ComputeHash(bytes);
             return Convert.ToBase64String(hash);
         }
 
-        // 新規登録
+        // 新規登録画面
         public IActionResult Create()
         {
             return View();
@@ -64,28 +57,21 @@ namespace TodoApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UserCreateViewModel model)
         {
-            // まず基本的な属性バリデーションをチェック
             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            // ここでRoleによるrevieweeEmail/reviewerEmailの必須チェック（手動）
             if (model.Role == UserRole.Reviewer && string.IsNullOrWhiteSpace(model.RevieweeEmail))
             {
                 ModelState.AddModelError("RevieweeEmail", "レビューイのメールアドレスは必須です。");
             }
             else if (model.Role == UserRole.Reviewer)
             {
-                // 形式チェックや存在チェックなど
                 if (!Regex.IsMatch(model.RevieweeEmail!, @"^[\x21-\x7E]{1,100}$"))
                     ModelState.AddModelError("RevieweeEmail", "レビューイのメールアドレスは半角100文字以下で入力してください。");
-                else
-                {
-                    var reviewee = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.RevieweeEmail);
-                    if (reviewee == null)
-                        ModelState.AddModelError("RevieweeEmail", "指定されたレビューイが存在しません。先に登録してください。");
-                }
+                else if (!await _context.Users.AnyAsync(u => u.Email == model.RevieweeEmail))
+                    ModelState.AddModelError("RevieweeEmail", "指定されたレビューイが存在しません。");
             }
 
             if (model.Role == UserRole.Reviewee && string.IsNullOrWhiteSpace(model.ReviewerEmail))
@@ -96,12 +82,8 @@ namespace TodoApp.Controllers
             {
                 if (!Regex.IsMatch(model.ReviewerEmail!, @"^[\x21-\x7E]{1,100}$"))
                     ModelState.AddModelError("ReviewerEmail", "レビュワのメールアドレスは半角100文字以下で入力してください。");
-                else
-                {
-                    var reviewer = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.ReviewerEmail);
-                    if (reviewer == null)
-                        ModelState.AddModelError("ReviewerEmail", "指定されたレビュワが存在しません。先に登録してください。");
-                }
+                else if (!await _context.Users.AnyAsync(u => u.Email == model.ReviewerEmail))
+                    ModelState.AddModelError("ReviewerEmail", "指定されたレビュワが存在しません。");
             }
 
             if (!ModelState.IsValid)
@@ -109,7 +91,6 @@ namespace TodoApp.Controllers
                 return View(model);
             }
 
-            // パスワードハッシュ化などの処理
             var user = new User
             {
                 Name = model.Name,
@@ -123,95 +104,32 @@ namespace TodoApp.Controllers
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
+            // 関係設定
             if (model.Role == UserRole.Reviewer)
             {
                 var reviewee = await _context.Users.FirstAsync(u => u.Email == model.RevieweeEmail);
-                _context.ReviewerReviewees.Add(new ReviewerReviewee
-                {
-                    ReviewerId = user.Id,
-                    RevieweeId = reviewee.Id
-                });
-                await _context.SaveChangesAsync();
+                user.RevieweeId = reviewee.Id;
+                _context.Update(user);
             }
             else if (model.Role == UserRole.Reviewee)
             {
                 var reviewer = await _context.Users.FirstAsync(u => u.Email == model.ReviewerEmail);
-                _context.ReviewerReviewees.Add(new ReviewerReviewee
-                {
-                    ReviewerId = reviewer.Id,
-                    RevieweeId = user.Id
-                });
-                await _context.SaveChangesAsync();
+                reviewer.RevieweeId = user.Id;
+                _context.Update(reviewer);
             }
-
-            return RedirectToAction(nameof(Index));
-        }
-
-
-        // 削除
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            // 関連データの取得
-            var relatedPairs = await _context.ReviewerReviewees
-                .Where(r => r.ReviewerId == user.Id || r.RevieweeId == user.Id)
-                .ToListAsync();
-
-            foreach (var pair in relatedPairs)
-            {
-                // 自分がレビュワなら、相手（レビューイ）を Other にする
-                if (pair.ReviewerId == user.Id)
-                {
-                    var reviewee = await _context.Users.FindAsync(pair.RevieweeId);
-                    if (reviewee != null)
-                    {
-                        reviewee.Role = UserRole.Other;
-                        reviewee.UpdatedAt = DateTime.Now;
-                        _context.Update(reviewee);
-                    }
-                }
-
-                // 自分がレビューイなら、相手（レビュワ）を Other にする
-                if (pair.RevieweeId == user.Id)
-                {
-                    var reviewer = await _context.Users.FindAsync(pair.ReviewerId);
-                    if (reviewer != null)
-                    {
-                        reviewer.Role = UserRole.Other;
-                        reviewer.UpdatedAt = DateTime.Now;
-                        _context.Update(reviewer);
-                    }
-                }
-            }
-
-            // 関連情報削除
-            _context.ReviewerReviewees.RemoveRange(relatedPairs);
-
-            // ユーザー削除
-            _context.Users.Remove(user);
 
             await _context.SaveChangesAsync();
-
             return RedirectToAction(nameof(Index));
         }
 
-
-        // 編集
-        // 編集画面表示
+        // 編集画面
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
 
             var user = await _context.Users
-                .Include(u => u.AsReviewer)
-                .Include(u => u.AsReviewee)
+                .Include(u => u.Reviewee)
+                .Include(u => u.Reviewer)
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             if (user == null) return NotFound();
@@ -222,24 +140,22 @@ namespace TodoApp.Controllers
                 Name = user.Name,
                 Email = user.Email,
                 Role = user.Role,
-                RevieweeEmail = user.AsReviewer?.Reviewee?.Email,
-                ReviewerEmail = user.AsReviewee?.Reviewer?.Email
+                RevieweeEmail = user.Reviewee?.Email,
+                ReviewerEmail = user.Reviewer?.Email
             };
 
             return View(model);
         }
 
-        // 編集内容の保存
+        // 編集保存
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, UserEditViewModel model)
         {
             if (id != model.Id) return NotFound();
+            if (!ModelState.IsValid) return View(model);
 
-            if (!ModelState.IsValid)
-                return View(model);
-
-            // Role に応じた revieweeEmail/reviewerEmail のバリデーション
+            // 関係の妥当性チェック
             if (model.Role == UserRole.Reviewer && string.IsNullOrWhiteSpace(model.RevieweeEmail))
             {
                 ModelState.AddModelError("RevieweeEmail", "レビューイのメールアドレスは必須です。");
@@ -249,7 +165,7 @@ namespace TodoApp.Controllers
                 if (!Regex.IsMatch(model.RevieweeEmail!, @"^[\x21-\x7E]{1,100}$"))
                     ModelState.AddModelError("RevieweeEmail", "レビューイのメールアドレスは半角100文字以下で入力してください。");
                 else if (!await _context.Users.AnyAsync(u => u.Email == model.RevieweeEmail))
-                    ModelState.AddModelError("RevieweeEmail", "指定されたレビューイが存在しません。先に登録してください。");
+                    ModelState.AddModelError("RevieweeEmail", "指定されたレビューイが存在しません。");
             }
 
             if (model.Role == UserRole.Reviewee && string.IsNullOrWhiteSpace(model.ReviewerEmail))
@@ -261,47 +177,46 @@ namespace TodoApp.Controllers
                 if (!Regex.IsMatch(model.ReviewerEmail!, @"^[\x21-\x7E]{1,100}$"))
                     ModelState.AddModelError("ReviewerEmail", "レビュワのメールアドレスは半角100文字以下で入力してください。");
                 else if (!await _context.Users.AnyAsync(u => u.Email == model.ReviewerEmail))
-                    ModelState.AddModelError("ReviewerEmail", "指定されたレビュワが存在しません。先に登録してください。");
+                    ModelState.AddModelError("ReviewerEmail", "指定されたレビュワが存在しません。");
             }
 
-            if (!ModelState.IsValid)
-                return View(model);
+            if (!ModelState.IsValid) return View(model);
 
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users
+                .Include(u => u.Reviewee)
+                .Include(u => u.Reviewer)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
             if (user == null) return NotFound();
 
+            // 基本情報更新
             user.Name = model.Name;
             user.Email = model.Email;
             user.Role = model.Role;
             user.UpdatedAt = DateTime.Now;
 
-            // リンク削除（既存のReviewerRevieweeを一旦削除）
-            var existingLink = await _context.ReviewerReviewees
-                .FirstOrDefaultAsync(r => r.ReviewerId == user.Id || r.RevieweeId == user.Id);
-            if (existingLink != null)
+            // 古い関係の解除
+            if (user.Role == UserRole.Reviewer && user.RevieweeId != null)
             {
-                _context.ReviewerReviewees.Remove(existingLink);
-                await _context.SaveChangesAsync();
+                user.RevieweeId = null;
+            }
+            else if (user.Role == UserRole.Reviewee && user.Reviewer != null)
+            {
+                user.Reviewer.RevieweeId = null;
+                _context.Update(user.Reviewer);
             }
 
-            // 新しいリンク追加
+            // 新しい関係設定
             if (model.Role == UserRole.Reviewer)
             {
                 var reviewee = await _context.Users.FirstAsync(u => u.Email == model.RevieweeEmail);
-                _context.ReviewerReviewees.Add(new ReviewerReviewee
-                {
-                    ReviewerId = user.Id,
-                    RevieweeId = reviewee.Id
-                });
+                user.RevieweeId = reviewee.Id;
             }
             else if (model.Role == UserRole.Reviewee)
             {
                 var reviewer = await _context.Users.FirstAsync(u => u.Email == model.ReviewerEmail);
-                _context.ReviewerReviewees.Add(new ReviewerReviewee
-                {
-                    ReviewerId = reviewer.Id,
-                    RevieweeId = user.Id
-                });
+                reviewer.RevieweeId = user.Id;
+                _context.Update(reviewer);
             }
 
             _context.Update(user);
@@ -310,138 +225,47 @@ namespace TodoApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // 一括登録
+        // 削除
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var user = await _context.Users
+                .Include(u => u.Reviewer)
+                .Include(u => u.Reviewee)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (user.Role == UserRole.Reviewer && user.Reviewee != null)
+            {
+                user.Reviewee.Role = UserRole.Other;
+                user.Reviewee.UpdatedAt = DateTime.Now;
+                _context.Update(user.Reviewee);
+            }
+
+            if (user.Role == UserRole.Reviewee && user.Reviewer != null)
+            {
+                user.Reviewer.Role = UserRole.Other;
+                user.Reviewer.UpdatedAt = DateTime.Now;
+                user.Reviewer.RevieweeId = null;
+                _context.Update(user.Reviewer);
+            }
+
+            user.RevieweeId = null;
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
+
         public IActionResult BulkCreate()
         {
             return View();
         }
-
-
-
-
-
-
-
-
-
-
-        //    public async Task<IActionResult> Details(int? id)
-        //    {
-        //        if (id == null)
-        //        {
-        //            return NotFound();
-        //        }
-
-        //        var user = await _context.Users
-        //            .FirstOrDefaultAsync(u => u.Id == id);
-        //        if (user == null)
-        //        {
-        //            return NotFound();
-        //        }
-
-        //        return View(user);
-        //    }
-
-        //    public IActionResult Create()
-        //    {
-        //        return View();
-        //    }
-
-        //    [HttpPost]
-        //    [ValidateAntiForgeryToken]
-        //    public async Task<IActionResult> Create(User user)
-        //    {
-        //        if (ModelState.IsValid)
-        //        {
-        //            _context.Add(user);
-        //            await _context.SaveChangesAsync();
-        //            return RedirectToAction(nameof(Index));
-        //        }
-        //        return View(user);
-        //    }
-
-        //    public async Task<IActionResult> Edit(int? id)
-        //    {
-        //        if (id == null)
-        //        {
-        //            return NotFound();
-        //        }
-
-        //        var user = await _context.Users.FindAsync(id);
-        //        if (user == null)
-        //        {
-        //            return NotFound();
-        //        }
-        //        return View(user);
-        //    }
-
-        //    [HttpPost]
-        //    [ValidateAntiForgeryToken]
-        //    public async Task<IActionResult> Edit(int id, User user)
-        //    {
-        //        if (id != user.Id)
-        //        {
-        //            return NotFound();
-        //        }
-
-        //        if (ModelState.IsValid)
-        //        {
-        //            try
-        //            {
-        //                _context.Update(user);
-        //                await _context.SaveChangesAsync();
-        //            }
-        //            catch (DbUpdateConcurrencyException)
-        //            {
-        //                if (!MainTaskExists(user.Id))
-        //                {
-        //                    return NotFound();
-        //                }
-        //                else
-        //                {
-        //                    throw;
-        //                }
-        //            }
-        //            return RedirectToAction(nameof(Index));
-        //        }
-        //        return View(user);
-
-        //    }
-
-        //    public async Task<IActionResult> Delete(int? id)
-        //    {
-        //        if (id == null)
-        //        {
-        //            return NotFound();
-        //        }
-
-        //        var user = await _context.Users
-        //            .FirstOrDefaultAsync(u => u.Id == id);
-        //        if (user == null)
-        //        {
-        //            return NotFound();
-        //        }
-
-        //        return View(user);
-        //    }
-
-        //    [HttpPost, ActionName("Delete")]
-        //    [ValidateAntiForgeryToken]
-        //    public async Task<IActionResult> DeleteConfirmed(int id)
-        //    {
-        //        var user = await _context.Users.FindAsync(id);
-        //        if (user != null)
-        //        {
-        //            _context.Users.Remove(user);
-        //        }
-
-        //        await _context.SaveChangesAsync();
-        //        return RedirectToAction(nameof(Index));
-        //    }
-
-        //    private bool MainTaskExists(int id)
-        //    {
-        //        return _context.Users.Any(e => e.Id == id);
-        //    }
     }
 }
